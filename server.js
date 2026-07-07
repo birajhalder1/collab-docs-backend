@@ -28,7 +28,7 @@ app.use(cookieParser());
 
 app.use(helmet());
 
-const allowedOrigins = ["http://localhost:3000", frontendUrl];
+const allowedOrigins = ["http://localhost:3000", 'https://collab-docs-frontend-steel.vercel.app'];
 
 app.use(
   cors({
