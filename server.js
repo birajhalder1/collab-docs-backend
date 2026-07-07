@@ -6,7 +6,7 @@ const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
 
 const connectDB = require("./src/config/db");
-const { port, clientOrigin } = require("./src/config/env");
+const { port, clientOrigin, frontendUrl } = require("./src/config/env");
 
 const errorHandler = require("./src/middleware/error.middleware");
 
@@ -28,10 +28,7 @@ app.use(cookieParser());
 
 app.use(helmet());
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  process.env.FRONTEND_URL,
-];
+const allowedOrigins = ["http://localhost:3000", frontendUrl];
 
 app.use(
   cors({
@@ -46,7 +43,7 @@ app.use(
       return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
-  })
+  }),
 );
 
 app.use(morgan("dev"));
