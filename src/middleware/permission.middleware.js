@@ -8,11 +8,9 @@ const {
 
 const loadDocument = async (req, res, next) => {
   try {
-    console.log("Document ID from URL:", req.params.documentId);
-
+    // console.log("Document ID from URL:", req.params.documentId);
     const document = await Document.findById(req.params.documentId);
-
-    console.log("Document from DB:", document);
+    // console.log("Document from DB:", document);
 
     if (!document) {
       return next(new AppError("Document not found", 404));
@@ -20,8 +18,8 @@ const loadDocument = async (req, res, next) => {
 
     const role = document.getRoleForUser(req.user._id);
 
-    console.log("User:", req.user._id);
-    console.log("Role:", role);
+    // console.log("User:", req.user._id);
+    // console.log("Role:", role);
 
     if (!role) {
       return next(new AppError("Access denied", 403));
