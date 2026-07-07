@@ -8,12 +8,20 @@ const {
 
 const loadDocument = async (req, res, next) => {
   try {
+    console.log("Document ID from URL:", req.params.documentId);
+
     const document = await Document.findById(req.params.documentId);
-    const role = document.getRoleForUser(req.user._id);
+
+    console.log("Document from DB:", document);
 
     if (!document) {
       return next(new AppError("Document not found", 404));
     }
+
+    const role = document.getRoleForUser(req.user._id);
+
+    console.log("User:", req.user._id);
+    console.log("Role:", role);
 
     if (!role) {
       return next(new AppError("Access denied", 403));
@@ -27,23 +35,6 @@ const loadDocument = async (req, res, next) => {
     next(err);
   }
 };
-
-// const loadDocument = async (req, res, next) => {
-//   const document = await Document.findById(req.params.documentId);
-
-//   if (!document) {
-//     return next(new AppError('Document not found', 404));
-//   }
-
-//   const role = document.getRoleForUser(req.user._id);
-//   if (!role) {
-//     return next(new AppError('Access denied', 403));
-//   }
-
-//   req.document = document;
-//   req.documentRole = role;
-//   next();
-// };
 
 const requireRole =
   (...allowedRoles) =>
