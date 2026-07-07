@@ -28,11 +28,25 @@ app.use(cookieParser());
 
 app.use(helmet());
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+];
+
 app.use(
   cors({
-    origin: clientOrigin,
+    origin: function (origin, callback) {
+      // Allow requests with no origin (Postman, mobile apps, etc.)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
-  }),
+  })
 );
 
 app.use(morgan("dev"));
