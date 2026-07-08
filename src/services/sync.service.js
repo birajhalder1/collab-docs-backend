@@ -33,18 +33,25 @@ const createSnapshot = async (
 /**
  * Pull changes since version
  */
-const pullChanges = async (document, sinceVersion = 0) => {
+const pullChanges = async (document, userId, sinceVersion = 0) => {
   const ops = await Operation.find({
     document: document._id,
     appliedVersion: { $gt: sinceVersion },
   }).sort({ appliedVersion: 1 });
 
+  const role = document.getRoleForUser(userId);
+  const isOwner = document.owner.toString() === userId.toString();
+
   return {
     documentId: document._id,
-    version: document.version,
-    lamportClock: document.lamportClock,
     title: document.title,
     content: document.content,
+    version: document.version,
+    lamportClock: document.lamportClock,
+    role,
+    isOwner,
+    ownerId: document.owner,
+
     operations: ops.map((op) => ({
       opId: op.opId,
       clientId: op.clientId,
@@ -64,7 +71,7 @@ const pullChanges = async (document, sinceVersion = 0) => {
  */
 const pushOperations = async (document, userId, { operations, clientId }) => {
   if (!operations?.length) {
-    return pullChanges(document, document.version);
+    return pullChanges(document, userId, document.version);
   }
 
   // 1. Load fresh document
@@ -88,7 +95,7 @@ const pushOperations = async (document, userId, { operations, clientId }) => {
     }));
 
   if (!newOps.length) {
-    return pullChanges(fresh, fresh.version);
+    return pullChanges(fresh, userId, fresh.version);
   }
 
   // 3. Lamport clock update
@@ -196,13 +203,18 @@ const pushOperations = async (document, userId, { operations, clientId }) => {
     });
   }
 
-  // 10. Response
+  const role = fresh.getRoleForUser(userId);
+  const isOwner = fresh.owner.toString() === userId.toString();
+
   return {
     documentId: fresh._id,
-    version: fresh.version,
-    lamportClock: fresh.lamportClock,
     title: fresh.title,
     content: fresh.content,
+    version: fresh.version,
+    lamportClock: fresh.lamportClock,
+    role,
+    isOwner,
+    ownerId: fresh.owner,
     appliedOperations: savedOps.map((op) => ({
       opId: op.opId,
       appliedVersion: op.appliedVersion,

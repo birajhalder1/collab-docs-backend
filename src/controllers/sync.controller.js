@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const pull = async (req, res, next) => {
   try {
     const sinceVersion = parseInt(req.query.sinceVersion || "0", 10);
-    const data = await syncService.pullChanges(req.document, sinceVersion);
+    const data = await syncService.pullChanges(req.document, req.user._id, sinceVersion);
 
     res.json({
       success: true,
