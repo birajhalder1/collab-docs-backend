@@ -1,27 +1,33 @@
-const Document = require('../models/document.model');
-const Version = require('../models/version.model');
-const User = require('../models/user.model');
-const AppError = require('../utils/AppError');
-const { ROLES } = require('../constants/roles');
+const Document = require("../models/document.model");
+const Version = require("../models/version.model");
+const User = require("../models/user.model");
+const AppError = require("../utils/AppError");
+const { ROLES } = require("../constants/roles");
 
 const listForUser = async (userId) => {
   const docs = await Document.find({
-    $or: [{ owner: userId }, { 'collaborators.user': userId }],
+    $or: [{ owner: userId }, { "collaborators.user": userId }],
   })
     .sort({ updatedAt: -1 })
-    .select('title owner version updatedAt collaborators');
+    .select("title content owner version lamportClock updatedAt collaborators");
 
   return docs.map((doc) => ({
-    id: doc._id,
+    id: doc._id.toString(),
     title: doc.title,
+    content: doc.content,
+    ownerId: doc.owner.toString(),
     version: doc.version,
+    lamportClock: doc.lamportClock,
     updatedAt: doc.updatedAt,
     role: doc.getRoleForUser(userId),
     isOwner: doc.owner.toString() === userId.toString(),
   }));
 };
 
-const create = async (userId, { title = 'Untitled Document', content = '' } = {}) => {
+const create = async (
+  userId,
+  { title = "Untitled Document", content = "" } = {},
+) => {
   const document = await Document.create({
     title,
     content,
@@ -36,8 +42,8 @@ const create = async (userId, { title = 'Untitled Document', content = '' } = {}
     title: document.title,
     content: document.content,
     createdBy: userId,
-    snapshotReason: 'auto',
-    label: 'Initial version',
+    snapshotReason: "auto",
+    label: "Initial version",
   });
 
   return {
@@ -68,17 +74,17 @@ const updateMetadata = async (document, { title }) => {
 
 const addCollaborator = async (document, { email, role }) => {
   if (role === ROLES.OWNER) {
-    throw new AppError('Cannot assign owner role to collaborators', 400);
+    throw new AppError("Cannot assign owner role to collaborators", 400);
   }
 
   const user = await User.findOne({ email: email.toLowerCase() });
-  if (!user) throw new AppError('User not found', 404);
+  if (!user) throw new AppError("User not found", 404);
   if (user._id.toString() === document.owner.toString()) {
-    throw new AppError('Owner already has full access', 400);
+    throw new AppError("Owner already has full access", 400);
   }
 
   const existing = document.collaborators.find(
-    (c) => c.user.toString() === user._id.toString()
+    (c) => c.user.toString() === user._id.toString(),
   );
   if (existing) {
     existing.role = role;
@@ -94,8 +100,8 @@ const addCollaborator = async (document, { email, role }) => {
 };
 
 const listCollaborators = async (document) => {
-  await document.populate('owner', 'name email');
-  await document.populate('collaborators.user', 'name email');
+  await document.populate("owner", "name email");
+  await document.populate("collaborators.user", "name email");
 
   const members = [
     {
@@ -121,11 +127,11 @@ const listCollaborators = async (document) => {
 
 const removeCollaborator = async (document, targetUserId) => {
   if (targetUserId.toString() === document.owner.toString()) {
-    throw new AppError('Cannot remove document owner', 400);
+    throw new AppError("Cannot remove document owner", 400);
   }
 
   document.collaborators = document.collaborators.filter(
-    (c) => c.user.toString() !== targetUserId.toString()
+    (c) => c.user.toString() !== targetUserId.toString(),
   );
   await document.save();
 };
