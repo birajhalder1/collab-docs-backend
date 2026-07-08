@@ -22,13 +22,16 @@ const app = express();
 const server = http.createServer(app);
 
 // Initialize Socket.IO once
-initSocket(server, clientOrigin);
+// initSocket(server, clientOrigin);
 
 app.use(cookieParser());
 
 app.use(helmet());
 
 const allowedOrigins = ["http://localhost:3000", 'https://collab-docs-frontend-steel.vercel.app'];
+
+// Initialize Socket.IO once
+initSocket(server, allowedOrigins);
 
 app.use(
   cors({

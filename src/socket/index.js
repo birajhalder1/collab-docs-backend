@@ -5,11 +5,28 @@ const { canWrite } = require("../constants/roles");
 const syncService = require("../services/sync.service");
 const dashboardService = require("../services/dashboard.service");
 
-const initSocket = (httpServer, corsOrigin) => {
+// const initSocket = (httpServer, corsOrigin) => {
+//   const io = new Server(httpServer, {
+//     cors: {
+//       origin: corsOrigin,
+//       credentials: true,
+//     },
+//   });
+
+  const initSocket = (httpServer, allowedOrigins) => {
   const io = new Server(httpServer, {
     cors: {
-      origin: corsOrigin,
+      origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.includes(origin)) {
+          return callback(null, true);
+        }
+
+        callback(new Error("Not allowed by CORS"));
+      },
       credentials: true,
+      methods: ["GET", "POST"],
     },
   });
 
