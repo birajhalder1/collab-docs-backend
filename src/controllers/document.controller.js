@@ -26,6 +26,8 @@ const createDocument = async (req, res, next) => {
       lamportClock: 0,
     });
 
+    console.log("createDocument", req.user, );
+
     res.status(201).json({
       success: true,
       data: {
