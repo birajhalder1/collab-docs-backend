@@ -9,7 +9,7 @@ module.exports = {
 
   login: [fields.email(), fields.passwordLogin()],
 
-  refresh: [fields.refreshToken()],
+  refresh: [],
 
-  logout: [fields.refreshToken()],
+  logout: [],
 };
